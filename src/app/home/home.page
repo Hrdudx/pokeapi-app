@@ -1,0 +1,55 @@
+import { Component, OnInit } from '@angular/core';
+import { PokemonService } from '../../services/pokemon.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.page.html',
+  styleUrls: ['./home.page.scss'],
+})
+export class HomePage implements OnInit {
+  pokemons = [];
+  limit = 20;
+  offset = 0;
+
+  constructor(private pokemonService: PokemonService, private router: Router) {}
+
+  ngOnInit() {
+    this.loadPokemons();
+  }
+
+  loadPokemons(event?: any) {
+    this.pokemonService.getPokemons(this.limit, this.offset).subscribe(res => {
+      this.pokemons.push(...res.results);
+      this.offset += this.limit;
+
+      if (event) {
+        event.target.complete();
+      }
+    });
+  }
+
+  openDetails(pokemon) {
+    this.router.navigate(['/details', pokemon.name]);
+  }
+}
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Pokémons</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let pokemon of pokemons" button (click)="openDetails(pokemon)">
+      {{ pokemon.name | titlecase }}
+    </ion-item>
+  </ion-list>
+
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadPokemons($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Carregando mais pokémons...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>
